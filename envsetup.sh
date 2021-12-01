@@ -327,6 +327,14 @@ function printconfig()
         return
     fi
     get_build_var report_config
+
+    # Darth9
+    if [ "$NOT_ORANGEFOX" != "1" ]; then
+    	local DEVICE=$(cut -d'_' -f2 <<<$TARGET_PRODUCT)
+    	mkdir -p /tmp/$DEVICE
+    	export > /tmp/$DEVICE/fox_env.sh
+    fi
+    # Darth9
 }
 
 function set_stuff_for_environment()
@@ -1629,3 +1637,45 @@ addcompletions
 export ANDROID_BUILD_TOP=$(gettop)
 
 . $ANDROID_BUILD_TOP/vendor/twrp/build/envsetup.sh
+
+
+# Darth9
+# prepare environment variables for importing to OrangeFox_A11.sh
+function orangefox_envsetup() {
+
+    export FOX_MANIFEST_ROOT=$(gettop)
+
+    if [ -z "$NOT_ORANGEFOX" ]; then
+       if [ ! -f $FOX_MANIFEST_ROOT/bootable/recovery/orangefox_defaults.go -a ! -f $FOX_MANIFEST_ROOT/bootable/recovery/orangefox.mk ]; then
+   	  export NOT_ORANGEFOX=1
+       fi
+    fi
+
+    if [ "$NOT_ORANGEFOX" = "1" ]; then
+        echo "- Not OrangeFox! ..."
+        return
+    fi
+
+    unset NOT_ORANGEFOX
+    export ALLOW_MISSING_DEPENDENCIES=true
+    
+    if [ -z "$OUT_DIR" ]; then
+       if [ -n "$OUT" ]; then
+          export OUT_DIR="$OUT"
+       else
+          export OUT_DIR="$FOX_MANIFEST_ROOT/out"
+          export OUT="$OUT_DIR"
+       fi
+    else
+    	if [ -z "$OUT" ]; then
+       	   export OUT="$OUT_DIR"
+    	fi
+    fi
+   # export OF_MANUAL_COPY_TWRES=1
+   [ -s $FOX_MANIFEST_ROOT/frameworks/base/services/core/xsd/vts/Android.mk ] && echo -n "" > $FOX_MANIFEST_ROOT/frameworks/base/services/core/xsd/vts/Android.mk
+}
+
+orangefox_envsetup
+
+# Darth9
+#
